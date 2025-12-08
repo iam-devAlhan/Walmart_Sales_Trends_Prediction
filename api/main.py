@@ -9,7 +9,10 @@ cors = CORSMiddleware(app=app,
                       ,allow_headers=["*"]
                       ,allow_credentials=True)
 
-@app.post("/predict")
+app.add_middleware(cors)
+
+
+@app.get("/predict")
 async def predict():
     pass
 
