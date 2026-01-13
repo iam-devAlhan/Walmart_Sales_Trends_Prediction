@@ -21,7 +21,7 @@ df['Day'] = df['Date'].dt.day
 df['Week'] = df['Date'].dt.isocalendar().week
 
 # Load trained model
-model = joblib.load("../notebooks/walmart-sales-prediction-model.pkl")
+model = joblib.load("notebooks/walmart-sales-prediction-model.pkl")
 
 # Get the feature names the model was trained on
 model_features = model.feature_names_in_
