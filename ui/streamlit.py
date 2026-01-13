@@ -27,7 +27,7 @@ model = joblib.load("../notebooks/walmart-sales-prediction-model.pkl")
 model_features = model.feature_names_in_
 
 st.title("How Unemployment Affects Weekly Sales")
-st.write("Use the slider to explore how unemployment can impact weekly sales of stores.")
+st.write("Use the slider to explore how unemployment can impact weekly sales of stores. Walmart Sales Prediction Model is used for predictions. The Unemployment rate has low correlation with Weekly Sales, but it's interesting to see the model's behavior.")
 
 # Slider for unemployment
 unemployment = st.slider(
