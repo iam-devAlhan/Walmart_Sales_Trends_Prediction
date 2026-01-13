@@ -65,4 +65,5 @@ chart_data = pd.DataFrame({
 })
 
 # Line chart
+st.write("This chart shows how predicted weekly sales change with varying unemployment rates.")
 st.line_chart(data=chart_data.set_index("Unemployment (%)"))
