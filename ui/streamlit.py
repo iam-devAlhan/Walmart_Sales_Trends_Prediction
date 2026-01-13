@@ -1,33 +1,68 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import joblib
+import kagglehub
+from kagglehub import KaggleDatasetAdapter
 
-st.set_page_config(
-    page_title="Walmart Sales Dashboard",
-    page_icon=":bar_chart:",
-    layout="wide"
+# Load dataset
+file_path = "Walmart.csv"
+df = kagglehub.load_dataset(
+    KaggleDatasetAdapter.PANDAS,
+    "yasserh/walmart-dataset",
+    file_path,
 )
 
-st.title("Walmart Sales Prediction for Better Stock Management")
-st.text("This demonstrates the Walmart sales prediction based on the dataset. Predicts sales according to date and holiday event.")
+# Preprocess date
+df["Date"] = pd.to_datetime(df["Date"], format="%d-%m-%Y", errors="coerce")
+df['Year'] = df['Date'].dt.year
+df['Month'] = df['Date'].dt.month
+df['Day'] = df['Date'].dt.day
+df['Week'] = df['Date'].dt.isocalendar().week
 
-# Create two columns: left for input, right for chart
-left_col, right_col = st.columns([0.3, 0.7])
+# Load trained model
+model = joblib.load("../notebooks/walmart-sales-prediction-model.pkl")
 
-with left_col:
-    date_input = st.date_input("Enter Date to continue")
-    is_holiday = st.selectbox("Select Holiday", ["Non Holiday", "Holiday"])
-    predict = st.button("Predict")
+# Get the feature names the model was trained on
+model_features = model.feature_names_in_
 
-    if predict:
-        # For now mock prediction
-        predicted_sales = 1640000  # Replace later with model.predict(...)
-        st.metric("Predicted Sales", f"${predicted_sales:,.2f}")
+st.title("How Unemployment Affects Weekly Sales")
+st.write("Use the slider to explore how unemployment can impact weekly sales of stores.")
 
-with right_col:
-    # Example mock data for chart
-    df_chart = pd.DataFrame({
-        "Sales": np.random.randint(1400000, 1700000, size=10),
-        "Week": [f"Week {i+1}" for i in range(10)]
-    })
-    st.bar_chart(data=df_chart.set_index("Week"), color="#0FD83A")
+# Slider for unemployment
+unemployment = st.slider(
+    "Unemployment Rate (%)",
+    float(df['Unemployment'].min()),
+    float(df['Unemployment'].max()),
+    float(df['Unemployment'].mean())
+)
+
+# Prepare input for prediction
+# Take the mean of all numeric columns in the dataset
+input_features = df.drop(columns=["Weekly_Sales"]).mean().to_dict()
+input_features['Unemployment'] = unemployment
+
+# Keep only the columns the model expects
+input_df = pd.DataFrame([{k: input_features[k] for k in model_features}])
+
+# Predict
+predicted_sales = model.predict(input_df)[0]
+st.markdown(f"### Predicted Weekly Sales: {predicted_sales:,.0f}")
+
+# Prepare chart data
+unemp_range = np.linspace(df['Unemployment'].min(), df['Unemployment'].max(), 50)
+sales_preds = []
+
+for u in unemp_range:
+    temp = input_features.copy()
+    temp['Unemployment'] = u
+    temp_df = pd.DataFrame([{k: temp[k] for k in model_features}])
+    sales_preds.append(model.predict(temp_df)[0])
+
+chart_data = pd.DataFrame({
+    "Unemployment (%)": unemp_range,
+    "Predicted Sales": sales_preds
+})
+
+# Line chart
+st.line_chart(data=chart_data.set_index("Unemployment (%)"))
