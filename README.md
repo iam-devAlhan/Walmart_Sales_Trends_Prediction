@@ -1,8 +1,7 @@
-Again Instructions to get started:
+This is project for analysis of Walmart Sales Dataset and Constructing a Machine Learning Model using Random Forests for stable predction.
+Exported Model using Joblib and used it within Streamlit UI.
 
-* First create Virtual env
-* Install packages
-* There you go
+For Contributing and Installing Deps
 
 > For Windows:
 ```cmd
